@@ -1,7 +1,7 @@
 Roads - Fields Filter
 ==================
 
-A library to help optimize JSON representations, by executing logic only when requested by the client.
+A library to help optimize JSON representations, by only executing logic when the associated field is requested by the client.
 
  - [Roads.FieldsFilter](#roadsfieldsfilter)
   - [new FieldsFilter(*dynamic* data)](#new-fieldsfilterdynamic-data)
