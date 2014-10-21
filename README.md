@@ -9,7 +9,7 @@ A library to help optimize JSON representations, by only executing logic when th
 
 
 
-  ## Roads.FieldsFilter
+## Roads.FieldsFilter
 
 Many APIs benefit from allowing users to limit which fields they want. If a user is only trying to display title and description, there's no need to provide tons of unrelated stats and metadata. This is the first benefit of the fields filter. When provided the response data of a route, and an array of valid fields, The field filter will remove any unwanted fields.
 ```
