@@ -1,7 +1,6 @@
 "use strict";
 
-var FieldsFilter = require('../lib/fieldsfilter');
-var Promise = require('bluebird');
+var FieldsFilter = require('../src/fieldsfilter');
 
 /**
  * Create a mock object to expand
@@ -49,20 +48,6 @@ function testResponseObject (expand_func) {
 }
 
 /**
- * Test that true will render the whole response body
- */
-exports.testRenderAllFilter = function (test) {
-	test.expect(1);
-
-	var filter = new FieldsFilter(testResponseObject());
-	filter.filter(true)
-	.then(function (filtered) {
-		test.deepEqual(testResponseObject(true), filtered);
-		test.done();
-	});
-};//*/
-
-/**
  * Test that an empty object filter will render out null
  */
 exports.testEmptyFilter = function (test) {
@@ -73,6 +58,49 @@ exports.testEmptyFilter = function (test) {
 	filter.filter({})
 	.then(function (filtered) {
 		test.deepEqual(null, filtered);
+		test.done();
+	})
+	.catch(function (err) {
+		console.log(err.stack);
+		test.fail();
+		test.done();
+	});
+};//*/
+
+/**
+ * Test that a single key will filter out everything but that key
+ */
+exports.testStringFilter = function (test) {
+	test.expect(1);
+
+	var filter = new FieldsFilter("aaron");
+	filter.filter(true)
+	.then(function (filtered) {
+		test.deepEqual("aaron", filtered);
+		test.done();
+	})
+	.catch(function (err) {
+		console.log(err.stack);
+		test.fail();
+		test.done();
+	});
+};//*/
+
+/**
+ * Test that a single key will filter out everything but that key
+ */
+exports.testIndividualArrayFilter = function (test) {
+	test.expect(1);
+
+	var filter = new FieldsFilter(["aaron","foo"]);
+	filter.filter(true)
+	.then(function (filtered) {
+		test.deepEqual(["aaron","foo"], filtered);
+		test.done();
+	})
+	.catch(function (err) {
+		console.log(err.stack);
+		test.fail();
 		test.done();
 	});
 };//*/
@@ -91,6 +119,11 @@ exports.testSingleFilter = function (test) {
 		test.deepEqual({
 			"name" : "aaron"
 		}, filtered);
+		test.done();
+	})
+	.catch(function (err) {
+		console.log(err.stack);
+		test.fail();
 		test.done();
 	});
 };//*/
@@ -112,6 +145,11 @@ exports.testMultipleFilter = function (test) {
 			"description" : "developer"
 		}, filtered);
 		test.done();
+	})
+	.catch(function (err) {
+		console.log(err.stack);
+		test.fail();
+		test.done();
 	});
 };//*/
 
@@ -132,6 +170,11 @@ exports.testObjectFilter = function (test) {
 				"type" : "profile"
 			}
 		}, filtered);
+		test.done();
+	})
+	.catch(function (err) {
+		console.log(err.stack);
+		test.fail();
 		test.done();
 	});
 
@@ -155,6 +198,11 @@ exports.testMultiLevelObjectFilter = function (test) {
 				"type" : "profile"
 			}
 		}, filtered);
+		test.done();
+	})
+	.catch(function (err) {
+		console.log(err.stack);
+		test.fail();
 		test.done();
 	});
 
@@ -183,6 +231,11 @@ exports.testArrayFilter = function (test) {
 			}]
 		}, filtered);
 		test.done();
+	})
+	.catch(function (err) {
+		console.log(err.stack);
+		test.fail();
+		test.done();
 	});
 };//*/
 
@@ -209,6 +262,11 @@ exports.testMultiLevelArrayFilter = function (test) {
 			}]
 		}, filtered);
 		test.done();
+	})
+	.catch(function (err) {
+		console.log(err.stack);
+		test.fail();
+		test.done();
 	});
 };//*/
 
@@ -227,6 +285,11 @@ exports.testFunctionFilterLiteral = function (test) {
 		test.deepEqual({
 			"delayed" : "hello"
 		}, filtered);
+		test.done();
+	})
+	.catch(function (err) {
+		console.log(err.stack);
+		test.fail();
 		test.done();
 	});
 };//*/
@@ -249,6 +312,11 @@ exports.testFunctionFilterObj = function (test) {
 				"test" : "yeah"
 			}
 		}, filtered);
+		test.done();
+	})
+	.catch(function (err) {
+		console.log(err.stack);
+		test.fail();
 		test.done();
 	});
 };//*/
@@ -274,6 +342,11 @@ exports.testFunctionArrayFilter = function (test) {
 			}]
 		}, filtered);
 		test.done();
+	})
+	.catch(function (err) {
+		console.log(err.stack);
+		test.fail();
+		test.done();
 	});
 };//*/
 
@@ -285,14 +358,14 @@ exports.testPromiseExpansionFilter = function (test) {
 
 	var filter = new FieldsFilter();
 	filter._filterObject(true, {
-		collection : Promise.coroutine(function* () {
+		collection : new Promise(function (resolve, reject) {
 			var values = [];
 			
 			for (var i = 0; i < 5; i++) {
 				values.push({"hello" : "goodbye"});
 			}
 
-			return values;
+			resolve(values);
 		})
 	})
 	.then(function (filtered) {
@@ -309,6 +382,30 @@ exports.testPromiseExpansionFilter = function (test) {
 				"hello" : "goodbye"
 			}]
 		}, filtered);
+		test.done();
+	})
+	.catch(function (err) {
+		console.log(err.stack);
+		test.fail();
+		test.done();
+	});
+};//*/
+
+/**
+ * Test that true will render the whole response body
+ */
+exports.testRenderAllFilter = function (test) {
+	test.expect(1);
+
+	var filter = new FieldsFilter(testResponseObject());
+	filter.filter(true)
+	.then(function (filtered) {
+		test.deepEqual(testResponseObject(true), filtered);
+		test.done();
+	})
+	.catch(function (err) {
+		console.log(err.stack);
+		test.fail();
 		test.done();
 	});
 };//*/

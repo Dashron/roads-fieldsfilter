@@ -6,8 +6,6 @@
 * MIT Licensed
  */
 
-var Promise = require('bluebird');
-
 /**
  * Create a field filter object with the response data from the API
  * @param dynamic data
@@ -39,35 +37,36 @@ FieldsFilter.prototype.filter = function filter (fields) {
  * [_filter description]
  * @type {[type]}
  */
-FieldsFilter.prototype._filter = Promise.coroutine(function* _filter (fields, data) {
+FieldsFilter.prototype._filter = function _filter (fields, data) {
 	if (typeof fields === "undefined") {
 		fields = true;
 	}
+	var _self = this;
 
-	// I don't like resolving the object like this, but promises don't always work without it. 
-	// The issue is I can't find a way to identify a thenable (besides if (data.then), which seems hacky?)
-	// Even if I mandate the use of bluebird (which I don't want to do) road's bluebird instance will not
-	// match the implementors bluebird instance, and instanceof Promise will fail
-	data = yield Promise.resolve(data);
+	// handle promises early. Has to happen here so the type checks get the proper object
+	return Promise.resolve(data)
+	.then(function (resolved_data) {
 
-	if (Array.isArray(data)) {
-		// if array, check each value
-		return yield this._filterArray(fields, data);
-	} else if (typeof(data) === "function") {
-		// Expand the function and then filter the contents
-		return yield this._filter(fields, data());
-	} else if (data === null) {
-		// expand nulls, since typeof(null) === "object"
-		return null;
-	} else if (typeof(data) === "object") {
-		// if object, recurse. Since fields always end with "true", true means "show everything else"
-		return yield this._filterObject(fields, data);
+		if (Array.isArray(resolved_data)) {
+			// if array, check each value
+			return _self._filterArray(fields, resolved_data);
+		} else if (typeof(resolved_data) === "function") {
+			// Expand the function and then filter the contents
+			return _self._filter(fields, resolved_data());
+		} else if (resolved_data === null) {
+			// expand nulls, since typeof(null) === "object"
+			return new Promise(function (resolve, reject) {
+				resolve(null);
+			});
+		} else if (typeof(resolved_data) === "object") {
+			// if object, recurse. Since fields always end with "true", true means "show everything else"
+			return _self._filterObject(fields, resolved_data);
+		} 
 
-	} 
-
-	// if the data is primitive, assign it directly
-	return data;
-});
+		// if the data is primitive, assign it directly
+		return resolved_data;
+	});
+};
 
 /**
  * For each field in the object, only keep those deemed "valid" from the fields object
@@ -76,9 +75,10 @@ FieldsFilter.prototype._filter = Promise.coroutine(function* _filter (fields, da
  * @param  Object data
  * @return Promise
  */
-FieldsFilter.prototype._filterObject = Promise.coroutine(function* filterObject (fields, data) {
+FieldsFilter.prototype._filterObject = function filterObject (fields, data) {
 	var new_data = {};
 	var field_keys = null;
+	var obj_values = [];
 
 	// if fields is true, we want to display and expand every value
 	if (fields === true || typeof fields === "undefined") {
@@ -86,21 +86,23 @@ FieldsFilter.prototype._filterObject = Promise.coroutine(function* filterObject 
 	} else {
 		field_keys = Object.keys(fields);
 	}
-
-	for (var key in data) {
-		// Make sure the property is valid and the field was requested
-		if (data.hasOwnProperty(key) && field_keys.indexOf(key) !== -1) {
-			new_data[key] = yield this._filter(fields ? fields[key] : true, data[key]);
-		}
+	for (let i = 0; i < field_keys.length; i++) {
+		obj_values.push(this._filter(fields === true ? fields : fields[field_keys[i]], data[field_keys[i]]));
 	}
 
-	// if the object is empty, we should actually return null
-	if (!Object.keys(new_data).length) {
-		return null;
-	}
+	return Promise.all(obj_values)
+		.then(function (values) {
+			var obj = {};
 
-	return new_data;
-});
+			for (let i = 0; i < values.length; i++) {
+				if (values[i]) {
+					obj[field_keys[i]] = values[i];
+				}
+			}
+
+			return Object.keys(obj).length ? obj : null;
+		});
+};
 
 /**
  * For each value of the array, only keep those fields deemed "valid" from the fields object
@@ -109,17 +111,13 @@ FieldsFilter.prototype._filterObject = Promise.coroutine(function* filterObject 
  * @param  Array value  data to limit
  * @return Array
  */
-FieldsFilter.prototype._filterArray = Promise.coroutine(function* filterArray (fields, value) {
+FieldsFilter.prototype._filterArray = function filterArray (fields, value) {
 	var final_array = [];
 	var filtered_value = null;
 
 	for (var i = 0, val_len = value.length; i < val_len; i++) {
-		if (value[i] instanceof Promise) {
-			value[i] = yield value[i];
-		}
-
 		// filter each item in the array with the current level of requested fields
-		filtered_value = yield this._filter(fields, value[i]);
+		filtered_value = this._filter(fields, value[i]);
 
 		// if we actually received data, we add it to the array, otherwise don't bother.
 		if (filtered_value) {
@@ -132,8 +130,11 @@ FieldsFilter.prototype._filterArray = Promise.coroutine(function* filterArray (f
 		return null;
 	}
 
-	return final_array;
-});
+	// Handle thenables in the array
+	return Promise.all(final_array).then(function (response) {
+		return response;
+	});
+};
 
 /**
  * Turn an array of fields (with periods determining heirarchy) and turn it into a series of objects

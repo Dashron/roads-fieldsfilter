@@ -2,7 +2,7 @@
 
 var url_module = require('url');
 
-module.exports.FieldsFilter = require('./lib/fieldsfilter.js');
+var FieldsFilter = module.exports.FieldsFilter = require('./src/fieldsfilter.js');
 
 /**
  * Helper function to replace roads.api.server. This one automatically incorporates the fields filtering

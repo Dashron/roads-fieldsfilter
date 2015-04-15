@@ -1,6 +1,6 @@
 "use strict";
 
-var FieldsFilter = require('../lib/fieldsfilter');
+var FieldsFilter = require('../src/fieldsfilter');
 
 /**
  * Test that single fields can be expanded properly
