@@ -1,7 +1,6 @@
 "use strict";
 
 var roads = require('roads');
-var Promise = require('bluebird');
 var exampleRepresentation = require('../representations/example.js');
 var subRepresentation = require('../representations/sub.js');
 
