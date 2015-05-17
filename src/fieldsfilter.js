@@ -55,9 +55,7 @@ FieldsFilter.prototype._filter = function _filter (fields, data) {
 			return _self._filter(fields, resolved_data());
 		} else if (resolved_data === null) {
 			// expand nulls, since typeof(null) === "object"
-			return new Promise(function (resolve, reject) {
-				resolve(null);
-			});
+			return null;
 		} else if (typeof(resolved_data) === "object") {
 			// if object, recurse. Since fields always end with "true", true means "show everything else"
 			return _self._filterObject(fields, resolved_data);
@@ -95,7 +93,7 @@ FieldsFilter.prototype._filterObject = function filterObject (fields, data) {
 			var obj = {};
 
 			for (let i = 0; i < values.length; i++) {
-				if (values[i]) {
+				if (values[i] !== undefined) {
 					obj[field_keys[i]] = values[i];
 				}
 			}
@@ -127,7 +125,7 @@ FieldsFilter.prototype._filterArray = function filterArray (fields, value) {
 
 	// if we didn't build an array, return null instead of an empty array
 	if (!final_array.length) {
-		return null;
+		return [];
 	}
 
 	// Handle thenables in the array

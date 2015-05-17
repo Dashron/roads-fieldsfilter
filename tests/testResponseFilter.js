@@ -409,3 +409,47 @@ exports.testRenderAllFilter = function (test) {
 		test.done();
 	});
 };//*/
+
+
+exports.testNullsPersist = function (test) {
+	var response = {
+		"a" : null,
+		"b" : {
+			"c" : null
+		}
+	};
+
+	var filter = new FieldsFilter(response);
+
+	filter.filter(true)
+	.then(function (filtered) {
+		console.log(filtered);
+		test.deepEqual(response, filtered);
+		test.done();
+	})
+	.catch(function (err) {
+		console.log(err.stack);
+		test.fail();
+		test.done();
+	});
+}
+
+exports.testEmptyArraysPersist = function (test) {
+	var response = {
+		"a" : []
+	};
+
+	var filter = new FieldsFilter(response);
+
+	filter.filter(true)
+	.then(function (filtered) {
+		console.log(filtered);
+		test.deepEqual(response, filtered);
+		test.done();
+	})
+	.catch(function (err) {
+		console.log(err.stack);
+		test.fail();
+		test.done();
+	});
+}
