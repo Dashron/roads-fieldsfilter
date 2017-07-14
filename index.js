@@ -11,12 +11,16 @@ module.exports.middleware = function () {
 	return function (method, url, body, headers, next) {
 		return next()
 			.then(function (response) {
-				// Apply field filtering and value expansion on the response object
-				var filter = new FieldsFilter(response.body);
-				return filter.filter(url.query.fields).then(function (filtered_body) {
-					response.body = filtered_body;
-					return response;
-				});
+				if (response) {
+					// Apply field filtering and value expansion on the response object
+					var filter = new FieldsFilter(response.body);
+					return filter.filter(url.query.fields).then(function (filtered_body) {
+						response.body = filtered_body;
+						return response;
+					});
+				}
+
+				return response;
 			});
 	};
 };

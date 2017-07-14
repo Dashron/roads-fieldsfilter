@@ -73,3 +73,29 @@ exports.testAsFirstMiddleware = function (test) {
 		test.fail();
 	});
 };//*/
+
+
+/**
+ * Test that a undefined response doesn't error
+ */
+exports.testMiddlewareReturnsNothing = function (test) {
+	test.expect(1);
+
+	middleware()('GET', {
+			path : '/users',
+			query : {}
+		}, {}, {}, function () {
+		return new Promise(function (resolve, reject) {
+			// resolve with a fake response object
+			resolve();
+		});
+	})
+	.then(function (filtered_response) {
+		test.deepEqual(undefined, filtered_response);
+		test.done();
+	})
+	.catch(function (err) {
+		console.log(err.stack);
+		test.fail();
+	});
+};//*/

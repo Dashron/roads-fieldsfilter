@@ -423,7 +423,6 @@ exports.testNullsPersist = function (test) {
 
 	filter.filter(true)
 	.then(function (filtered) {
-		console.log(filtered);
 		test.deepEqual(response, filtered);
 		test.done();
 	})
@@ -443,7 +442,6 @@ exports.testEmptyArraysPersist = function (test) {
 
 	filter.filter(true)
 	.then(function (filtered) {
-		console.log(filtered);
 		test.deepEqual(response, filtered);
 		test.done();
 	})
